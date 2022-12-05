@@ -51,61 +51,55 @@ def clean_thread(in_paths, dst_folder):
     print("Done!")
 
 
-folder_path = "txt_out"
-"""
-SRC_FOLDER_PATH = "maildir"
-SAMPLE_SIZE = 2700
-SAMPLE_FOLDER_PATH = "sample"
-DST_FOLDER_PATH = "json_out"
+# merge all json files in json_out folder into one json file as a list of json objects
+def merge_json_files(json_folder_path, json_file_name):
+    json_list = []
+    for json_file in os.listdir(json_folder_path):
+        if json_file.endswith(".json"):
+            with open(f"{json_folder_path}/{json_file}", "r") as f:
+                json_list.append(json.load(f))
+    with open(f"{json_file_name}", "w") as f:
+        json.dump(json_list, f)
 
 
-IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
-clean_thread(IN_PATHS, DST_FOLDER_PATH)
+def bodies_only_dataset(in_folder="json_out", out_folder="txt_out"):
+    if not os.path.exists(out_folder):
+        os.makedirs(out_folder)
 
-
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-counter = 0
-for i in os.listdir("json_out"):
-    if i[0] == ".":
-        continue
-    with open(f"json_out/{i}", "r") as f:
-        counter += 1
-        data = json.load(f)
-        bodies_to_txts(data, to_file=True, txt_path=f"{folder_path}/{i[:-5]}")
-        if counter % 1000 == 0:
-            print(f"Successfully converted {counter} threads")
-
-print(len(os.listdir("txt_out")))
-"""
-if not os.path.exists("header_miss"):
-    os.makedirs("header_miss")
-
-counter = 1
-counter_1 = 1
-for i in os.listdir(folder_path):
-
-    with open(f"{folder_path}/{i}", "r") as file:
-        thread = file.read()
-
-        if "To:" in thread:
-            shutil.move(f"{folder_path}/{i}", f"header_miss/{i}")
+    counter = 0
+    for i in os.listdir(in_folder):
+        if i[0] == ".":
+            continue
+        with open(f"{in_folder}/{i}", "r") as f:
             counter += 1
+            data = json.load(f)
+            bodies_to_txts(data, to_file=True, txt_path=f"{out_folder}/{i[:-5]}")
+            if counter % 1000 == 0:
+                print(f"Successfully converted {counter} threads")
 
-        if counter % 1000 == 0:
-            print(f"Moved {counter}/{counter_1} emails")
-    counter_1 += 1
 
+def move_unclean_data(folder_path="txt_out", dst_folder="header_miss"):
+    if not os.path.exists(dst_folder):
+        os.makedirs(dst_folder)
 
-"""
+    counter = 1
+    counter_1 = 1
+    for i in os.listdir(folder_path):
+
+        with open(f"{folder_path}/{i}", "r") as file:
+            thread = file.read()
+
+            if "To:" in thread:
+                shutil.move(f"{folder_path}/{i}", f"{dst_folder}/{i}")
+                counter += 1
+
+                if counter % 1000 == 0:
+                    print(f"Moved {counter}/{counter_1} emails")
+        counter_1 += 1
 
 
 SRC_FOLDER_PATH = "maildir"
 SAMPLE_SIZE = 2700
 SAMPLE_FOLDER_PATH = "sample"
 DST_FOLDER_PATH = "json_out"
-
-
 IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
-clean_thread(IN_PATHS, DST_FOLDER_PATH)"""
