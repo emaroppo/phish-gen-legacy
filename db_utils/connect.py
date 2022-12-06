@@ -24,7 +24,9 @@ def clean_general_signature_db(db):
             {"_id": doc["_id"]},
             {
                 "$set": {
-                    "head_message.body": remove_signature(doc["head_message"]["body"])
+                    "head_message.body": remove_general_signature(
+                        doc["head_message"]["body"]
+                    )
                 }
             },
         )
@@ -46,7 +48,7 @@ def clean_legal_signature_db(db):
                 {"_id": doc["_id"]},
                 {
                     "$set": {
-                        "head_message.body": remove_signature(
+                        "head_message.body": remove_legal_signature(
                             doc["head_message"]["body"]
                         )
                     },
@@ -58,7 +60,7 @@ def clean_legal_signature_db(db):
                 {"_id": doc["_id"]},
                 {
                     "$set": {
-                        "head_message.body": remove_signature(
+                        "head_message.body": remove_legal_signature(
                             doc["head_message"]["body"]
                         ),
                         "head_message.tags": [r"[LEGAL]"],
@@ -67,4 +69,5 @@ def clean_legal_signature_db(db):
             )
 
 
+clean_legal_signature_db(db)
 client.close()
