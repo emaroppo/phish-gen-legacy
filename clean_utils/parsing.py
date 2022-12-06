@@ -1,20 +1,12 @@
 import re
+from clean_utils.regex_dict import regex_dict
 
 
 def extract_headers(message):
 
     headers = dict()
 
-    pattern_dict = dict()
-    pattern_dict["from"] = r"From:\s*(.*)"
-    pattern_dict["sent_datetime"] = (
-        r"Sent:\s*(([A-z0-9,\s]+,\s*[0-9]{2,4})\s*([0-9]{1,2}:[0-9]{1,2} (AM|PM)))",
-        r"Date:\s*([A-z0-9, \/:]*)",
-    )
-    pattern_dict["to"] = r"To:\s*((.*)(\n +.*)*)"
-    pattern_dict["subject"] = r"Subject:\s*(.*\s*)"
-    pattern_dict["importance"] = r"Importance:\s*([A-z0-9]*)"
-    pattern_dict["cc"] = r"[Cc]{2}:(.*)"
+    pattern_dict = regex_dict["headers"]
 
     for i in pattern_dict.keys():
         if type(pattern_dict[i]) is str:
@@ -31,7 +23,7 @@ def extract_headers(message):
 
 
 def extract_head_headers(header_str):
-    header_pattern = re.compile(r"[A-z-]*:((.*)(\n\t.*)*)")
+    header_pattern = re.compile(regex_dict["head_headers"])
     # extract all group 1 matches from header_str to a list
     results = header_pattern.findall(header_str)
 
@@ -63,7 +55,7 @@ def extract_head_headers(header_str):
 def extract_forwarded(message):
     """Extract forwarded message from a message."""
 
-    forward_pattern = "-{3,}\s*Forwarded[\s\n]by\s*([A-z0-9\/\.\s_]+)[\s\n]on\s*(([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{1,4})\s*([0-9]{1,2}:[0-9]{1,2}\s*(PM|AM)))\s*-{3,}"
+    forward_pattern = regex_dict["forwarded"]
 
     if re.search(forward_pattern, message):
 

@@ -1,5 +1,6 @@
 import re
 import os
+from clean_utils.regex_dict import regex_dict
 
 
 def strip_body(thread_dict):
@@ -9,10 +10,13 @@ def strip_body(thread_dict):
     return thread_dict
 
 
-def remove_signature(body):
-    signature = r"Enron North America Corp\.\s([0-9]*\s[A-z\s]*,\s[A-z0-9\s]*\s)([A-z]*,\s[A-z]*\s+)[0-9]*\s([0-9]*-[0-9]*-[0-9]*\s)\(phone\)\s([0-9]*-[0-9]*-[0-9]*\s)\(fax\)\s([A-z.]*@enron.com)"
+def remove_general_signature(body):
+    signature = regex_dict["signatures"]["general"]
     body = re.sub(signature, r"[SIGNATURE]", body)
     return body
 
 
-print(os.getcwd())
+def remove_legal_signature(body):
+    signature = regex_dict["signatures"]["legal"]
+    body = re.sub(signature, r"[SIGNATURE]", body)
+    return body
