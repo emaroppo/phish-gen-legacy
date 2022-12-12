@@ -170,7 +170,6 @@ def extract_attachments(
                                 add_attachment(db, k, attachments, scope="messages")
 
                 except TypeError as e:
-                    print("oi")
                     print(e)
                     pass
 
