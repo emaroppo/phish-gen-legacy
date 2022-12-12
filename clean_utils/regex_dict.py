@@ -1,3 +1,5 @@
+import json
+
 regex_dict = {
     "signatures": {
         "general": (
@@ -22,7 +24,30 @@ regex_dict = {
         "cc": r"[Cc]{2}:(.*)",
     },
     "forwarded": r"-{3,}\s*Forwarded[\s\n]by\s*([A-z0-9\/\.\s_]+)[\s\n]on\s*(([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{1,4})\s*([0-9]{1,2}:[0-9]{1,2}\s*(PM|AM)))\s*-{3,}",
+    "url": r"((?:http|https|ftp|ftps):\/\/[A-z0-9\.\/\?=&_\-]+)",
 }
+
+
+def get_attachment_regex_dict(format_file):
+
+    with open(format_file, "r") as f:
+        file_list = json.load(f)
+
+    format_list = []
+
+    for i in file_list.keys():
+        format_list += file_list[i]
+
+    attachment_regex_dict = [
+        (
+            r"\(See attached file: (([\-\w\s!&.()#]*)\.({})\))".format(i),
+            r"<<(([\-\w\s!.&'()#]*)\.({}))>>".format(i),
+            r" - (([\-\w\s!&'.()#]*)\.({}))".format(i),
+        )
+        for i in format_list
+    ]
+    return attachment_regex_dict
+
 
 # TO DO: attempt to generalise regexes
 # TO DO: add regexes for forwarded messages

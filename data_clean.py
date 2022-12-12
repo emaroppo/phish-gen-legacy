@@ -90,4 +90,6 @@ SRC_FOLDER_PATH = "maildir"
 SAMPLE_SIZE = 2700
 SAMPLE_FOLDER_PATH = "sample"
 DST_FOLDER_PATH = "json_out"
-IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
+# IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
+
+move_unclean_data(folder_path="email_bodies")
