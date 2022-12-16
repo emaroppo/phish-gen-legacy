@@ -14,14 +14,14 @@ from clean_utils.clean import (
 from clean_utils.export import bodies_to_txts, txt_to_json
 from clean_utils.regex_dict import garbage_dict
 from clean_utils.sample import generate_path
-from db_utils.connect import (
-    extract_attachments_obj,
-    extract_urls_obj,
-    remove_general_signature,
-    remove_legal_signature,
+from db_utils.connect import extract_attachments_obj, extract_urls_obj
+from db_utils.gen_dataset import create_dataset
+from db_utils.tagging import (
+    add_word_count,
+    tag_html_documents,
+    tags_from_attachments,
+    tags_from_urls,
 )
-
-from db_utils.tagging import tags_from_attachments, tags_from_urls
 
 
 def load_thread(path):
@@ -186,7 +186,9 @@ def db_cleaning_pipeline(db):
     print("Attachments tagged.")
     tags_from_urls(db)
     print("Urls tagged.")
-
+    add_word_count(db)
+    print("Word count added.")
+    tag_html_documents(db)
     print("Done.")
 
 
@@ -198,5 +200,6 @@ IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.email
-
 db_cleaning_pipeline(db)
+create_dataset(db, "email_bodies_balanced2", balance_dataset=True)
+client.close()
