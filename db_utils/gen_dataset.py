@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from tqdm import tqdm
 import os
+from clean_utils.clean import strip_body, remove_corrupted_characters, remove_gt
 
 
 def create_txt(email, to_file=False, txt_path=None):
@@ -11,11 +12,12 @@ def create_txt(email, to_file=False, txt_path=None):
         tags = []
 
     body = email["body"]
+    body = remove_gt(remove_corrupted_characters(body)).strip()
     prompt_model = (
         f"""[TAGS_START]{",".join(tags)}[TAGS_END][BODY_START]{body}[BODY_END]"""
     )
 
-    if to_file:
+    if to_file and body.strip() != "":
         with open(txt_path, "w") as f:
             f.write(prompt_model)
     return prompt_model
