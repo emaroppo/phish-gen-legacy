@@ -1,9 +1,27 @@
 import json
 import os
 import shutil
-from clean_utils.export import txt_to_json, bodies_to_txts
-from clean_utils.sample import generate_path
+
+from pymongo import MongoClient
 from tqdm import tqdm
+
+from clean_utils.clean import (
+    remove_corrupted_characters,
+    remove_gt,
+    remove_img_token,
+    retrieve_subject,
+)
+from clean_utils.export import bodies_to_txts, txt_to_json
+from clean_utils.regex_dict import garbage_dict
+from clean_utils.sample import generate_path
+from db_utils.connect import (
+    extract_attachments_obj,
+    extract_urls_obj,
+    remove_general_signature,
+    remove_legal_signature,
+)
+
+from db_utils.tagging import tags_from_attachments, tags_from_urls
 
 
 def load_thread(path):
@@ -13,43 +31,47 @@ def load_thread(path):
         thread_header, thread = thread.split("X-FileName:")
         thread = "\n".join(thread.split("\n")[2:])
 
+    thread = remove_corrupted_characters(thread)
+
     return thread, thread_header
 
 
-def clean_thread(in_paths, dst_folder):
+def clean_thread(in_paths, dst_folder, start=0):
 
     if not os.path.exists(dst_folder):
         os.makedirs(dst_folder)
 
     print(f"Loading {len(in_paths)} emails...")
+    if start > 0:
+        in_paths = in_paths[start:]
 
-    for i in tqdm(in_paths):
+    for i, j in enumerate(tqdm(in_paths)):
         try:
-            thread, thread_header = load_thread(i)
-            counter += 1
+            thread, thread_header = load_thread(j)
             out_filename = (
-                f"{counter}-{i.split('/')[-3]}_{i.split('/')[-2]}_{i.split('/')[-1]}"
+                f"{i+start}-{j.split('/')[-3]}_{j.split('/')[-2]}_{j.split('/')[-1]}"
             )
         except UnicodeDecodeError:
             pass
         except IsADirectoryError:
             pass
-
-        txt_to_json(
-            thread_id=counter,
-            thread=thread,
-            thread_header=thread_header,
-            to_file=True,
-            json_path=f"{dst_folder}/{out_filename}.json",
-        )
+        try:
+            txt_to_json(
+                thread=thread,
+                thread_header=thread_header,
+                to_file=True,
+                json_path=f"{dst_folder}/{out_filename}.json",
+            )
+        except:
+            print(f"Error in {j}")
 
     print(f"Successfully cleaned {len(os.listdir(dst_folder))} emails")
 
 
-# merge all json files in json_out folder into one json file as a list of json objects
 def merge_json_files(json_folder_path, json_file_name):
     json_list = []
-    for json_file in os.listdir(json_folder_path):
+    print("Merging jsons...")
+    for json_file in tqdm(os.listdir(json_folder_path)):
         if json_file.endswith(".json"):
             with open(f"{json_folder_path}/{json_file}", "r") as f:
                 json_list.append(json.load(f))
@@ -86,10 +108,95 @@ def move_unclean_data(folder_path="txt_out", dst_folder="header_miss"):
     print(f"Removed {len(os.listdir('header_miss'))} unclean emails from dataset")
 
 
-SRC_FOLDER_PATH = "maildir"
+def db_cleaning_pipeline(db):
+    print("Cleaning bodies...")
+    for i in tqdm(db.enron_dataset.find()):
+
+        new_body = remove_img_token(remove_gt(i["head_message"]["body"])).strip()
+
+        new_body, subj = retrieve_subject(new_body)
+
+        if subj:
+            db.enron_dataset.update_one(
+                {"_id": i["_id"]},
+                {"$set": {"head_message.body": new_body, "head_message.subject": subj}},
+            )
+        else:
+
+            db.enron_dataset.update_one(
+                {"_id": i["_id"]},
+                {"$set": {"head_message.body": new_body}},
+            )
+
+        for j, k in enumerate(i["messages"]):
+
+            new_body = remove_img_token(remove_gt(k["body"])).strip()
+            new_body, subj = retrieve_subject(new_body)
+
+            if subj:
+                db.enron_dataset.update_one(
+                    {"_id": i["_id"]},
+                    {
+                        "$set": {
+                            "messages." + str(j) + ".body": new_body,
+                            "messages." + str(j) + ".subject": subj,
+                        }
+                    },
+                )
+            else:
+
+                db.enron_dataset.update_one(
+                    {"_id": i["_id"]},
+                    {"$set": {"messages." + str(j) + ".body": new_body}},
+                )
+    print("Cleaning bodies done.")
+
+    print("Extracting attachments...")
+    extract_attachments_obj(db)
+    print("Extracting attachments done.")
+
+    print("Removing automatic footers...")
+    for i in garbage_dict.keys():
+        print(f"Removing {i} from bodies...")
+        count = 0
+        for j in tqdm(db.enron_dataset.find()):
+            for k in garbage_dict[i]:
+                if k in j["head_message"]["body"]:
+                    new_body = j["head_message"]["body"].replace(k, "").strip()
+                    db.enron_dataset.update_one(
+                        {"_id": j["_id"]}, {"$set": {"head_message.body": new_body}}
+                    )
+                for l, m in enumerate(j["messages"]):
+                    if k in m["body"]:
+                        new_body = m["body"].replace(k, "").strip()
+                        db.enron_dataset.update_one(
+                            {"_id": j["_id"]},
+                            {"$set": {"messages." + str(l) + ".body": new_body}},
+                        )
+                        count += 1
+        print(f"Removed {count} instances of {i} from bodies")
+    print("Removing automatic footers done.")
+
+    print("Extracting urls...")
+    extract_urls_obj(db)
+    print("Extracting urls done.")
+
+    print("Tagging Documents...")
+    tags_from_attachments(db)
+    print("Attachments tagged.")
+    tags_from_urls(db)
+    print("Urls tagged.")
+
+    print("Done.")
+
+
+SRC_FOLDER_PATH = "datasets/maildir"
 SAMPLE_SIZE = 2700
 SAMPLE_FOLDER_PATH = "sample"
-DST_FOLDER_PATH = "json_out"
-# IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
+DST_FOLDER_PATH = "output/json_out"
+IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
 
-move_unclean_data(folder_path="email_bodies")
+client = MongoClient("mongodb://localhost:27017/")
+db = client.email
+
+db_cleaning_pipeline(db)
