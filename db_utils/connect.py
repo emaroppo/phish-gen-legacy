@@ -106,11 +106,14 @@ def post_attachments(db, doc_, attachment, scope="all", array_index=None):
 
 
 def extract_attachments_obj(
-    db, format_list=get_attachment_regex_dict("file_formats.json"), scope="all"
+    db,
+    format_list=get_attachment_regex_dict("file_formats.json"),
+    scope="all",
+    replacement_token=False,
 ):
 
     if scope == "head_message" or scope == "all":
-        for i in format_list:
+        for i in tqdm(format_list):
             for j in i:
 
                 print(f"Looking for .{j} attachments...")
@@ -123,13 +126,19 @@ def extract_attachments_obj(
                         for k in tqdm(cursor):
                             body = k["head_message"]["body"]
                             match = re.findall(j, body, flags=re.IGNORECASE)
+                            if replacement_token:
+                                new_body = re.sub(
+                                    j, r"[FILE]", body, flags=re.IGNORECASE
+                                )
+                            else:
+                                new_body = body
+
                             attachments = [
                                 {"file": k[0], "file_name": k[1], "file_format": k[2]}
                                 for k in match
                             ]
-                            k["head_message"]["body"] = re.sub(
-                                j, r"[FILE]", body, flags=re.IGNORECASE
-                            )
+                            k["head_message"]["body"] = new_body
+
                             post_attachments(db, k, attachments)
 
                 except TypeError:
@@ -155,6 +164,12 @@ def extract_attachments_obj(
                             for l in k["messages"]:
                                 body = l["body"]
                                 match = re.findall(j, body, flags=re.IGNORECASE)
+                                if replacement_token:
+                                    new_body = re.sub(
+                                        j, r"[FILE]", body, flags=re.IGNORECASE
+                                    )
+                                else:
+                                    new_body = body
                                 if match:
                                     attachments = [
                                         {
@@ -164,9 +179,7 @@ def extract_attachments_obj(
                                         }
                                         for k in match
                                     ]
-                                    l["body"] = re.sub(
-                                        j, r"[FILE]", body, flags=re.IGNORECASE
-                                    )
+                                    l["body"] = new_body
                                     post_attachments(
                                         db, k, attachments, scope="messages"
                                     )
@@ -207,7 +220,7 @@ def post_urls(db, doc_, urls=[], scope="all"):
         )
 
 
-def extract_urls_obj(db, scope="all"):
+def extract_urls_obj(db, scope="all", replacement_token=True):
 
     if scope == "head_message" or scope == "all":
 
@@ -219,23 +232,33 @@ def extract_urls_obj(db, scope="all"):
             body = i["head_message"]["body"]
             match = re.findall(regex_dict["url"], body)
             urls = [k for k in match]
-            i["head_message"]["body"] = re.sub(regex_dict["url"], r"[URL]", body)
+            if replacement_token:
+                new_body = re.sub(
+                    regex_dict["url"], r"[URL]", body, flags=re.IGNORECASE
+                )
+            else:
+                new_body = body
+            i["head_message"]["body"] = new_body
             post_urls(db, i, urls, scope="head_message")
 
     if scope == "messages" or scope == "all":
         cursor = db.enron_dataset.find(
             {"messages": {"$elemMatch": {"body": {"$regex": regex_dict["url"]}}}}
         )
+
         for i in tqdm(cursor):
             for j in i["messages"]:
                 body = j["body"]
                 match = re.findall(regex_dict["url"], body)
+
+                if replacement_token:
+                    new_body = re.sub(
+                        regex_dict["url"], r"[URL]", body, flags=re.IGNORECASE
+                    )
+                else:
+                    new_body = body
+
                 if match:
                     j["urls"] = [k for k in match]
-                    j["body"] = re.sub(regex_dict["url"], r"[URL]", body)
+                    j["body"] = new_body
                     post_urls(db, i, scope="messages")
-
-
-client = MongoClient("localhost", 27017)
-db = client.email
-client.close()
