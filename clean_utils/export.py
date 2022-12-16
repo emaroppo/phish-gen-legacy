@@ -33,3 +33,6 @@ def bodies_to_txts(thread_dict, to_file=True, txt_path=None, clean=True):
                     file.write(j)
 
     return head_message, message_bodies
+
+
+# Module mostly useless now, will probably move functions somewhere else and delete this file
