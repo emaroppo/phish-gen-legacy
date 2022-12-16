@@ -89,14 +89,14 @@ def post_url_tag_to_message(db, doc, head_message=True, message_index=None):
             db.enron_dataset.update_one(
                 {"_id": doc["_id"]},
                 {
-                    "$push": {"head_message.tags": {"$each": ["[URL]"]}},
+                    "$push": {"head_message.tags": {"$each": ["[LINK]"]}},
                 },
             )
         else:
             db.enron_dataset.update_one(
                 {"_id": doc["_id"]},
                 {
-                    "$set": {"head_message.tags": ["LINK"]},
+                    "$set": {"head_message.tags": ["[LINK]"]},
                 },
             )
     else:
@@ -106,7 +106,9 @@ def post_url_tag_to_message(db, doc, head_message=True, message_index=None):
                 {"_id": doc["_id"]},
                 {
                     "$push": {
-                        "messages." + str(message_index) + ".tags": {"$each": ["[URL]"]}
+                        "messages."
+                        + str(message_index)
+                        + ".tags": {"$each": ["[LINK]"]}
                     },
                 },
             )
@@ -114,7 +116,7 @@ def post_url_tag_to_message(db, doc, head_message=True, message_index=None):
             db.enron_dataset.update_one(
                 {"_id": doc["_id"]},
                 {
-                    "$set": {"messages." + str(message_index) + ".tags": ["[URL]"]},
+                    "$set": {"messages." + str(message_index) + ".tags": ["[LINK]"]},
                 },
             )
 
@@ -178,7 +180,9 @@ def tag_html_documents(db, scope="all"):
         print(
             f'Found {db.enron_dataset.count_documents({"head_message.body": {"$regex": "<html>"}})} html documents in head_message'
         )
-        cursor = db.enron_dataset.find({"head_message.body": {"$regex": "<html>"}})
+        cursor = db.enron_dataset.find(
+            {"head_message.body": {"$regex": "<html>", "$options": "i"}}
+        )
         for i in tqdm(cursor):
             db.enron_dataset.update_one(
                 {"_id": i["_id"]},
@@ -203,5 +207,4 @@ def tag_html_documents(db, scope="all"):
 
 client = MongoClient("localhost", 27017)
 db = client.email
-
 client.close()
