@@ -1,0 +1,20 @@
+#ignore venv
+phish_detect/
+Pipfile.lock
+Pipfile
+
+#ignore datasets
+datasets/
+
+#ignore processed datasets
+output/
+email_bodies/
+email_bodies2/
+header_miss/
+email_bodies.zip
+
+#ignore systemfiles
+.DS_Store
+.tmp.*
+__pycache__/
+.vscode/
