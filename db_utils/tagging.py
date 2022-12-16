@@ -96,7 +96,7 @@ def post_url_tag_to_message(db, doc, head_message=True, message_index=None):
             db.enron_dataset.update_one(
                 {"_id": doc["_id"]},
                 {
-                    "$set": {"head_message.tags": ["URL"]},
+                    "$set": {"head_message.tags": ["LINK"]},
                 },
             )
     else:
@@ -203,5 +203,5 @@ def tag_html_documents(db, scope="all"):
 
 client = MongoClient("localhost", 27017)
 db = client.email
-add_word_count(db)
+
 client.close()
