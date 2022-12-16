@@ -1,7 +1,7 @@
 import json
 
 
-def get_attachment_regex_dict(format_file):
+def get_attachment_regex_dict(format_file="clean_utils/file_formats.json"):
 
     with open(format_file, "r") as f:
         file_list = json.load(f)
@@ -156,6 +156,16 @@ MIMEsweeper for the presence of computer viruses.
     "auto_footers": (
         """_________________________________________________________________
     Get your FREE download of MSN Explorer at http://explorer.msn.com/intl.asp/""",
+        """_________________________________________________________________
+    Get your FREE download of MSN Explorer at\nhttp://explorer.msn.com/intl.asp/""",
+        """_________________________________________________________________
+    Get  your FREE download of MSN Explorer at http://explorer.msn.com/intl.asp/""",
+        """Get  your FREE download of MSN Explorer at http://explorer.msn.com/intl.asp/""",
+        """_________________________________________________________________
+Get your FREE download of MSN Explorer at http://explorer.msn.com/intl.asp""",
+        """Get  your FREE download of MSN Explorer at http://explorer.msn.com/intl.asp/""",
+        """Get your FREE download of MSN Explorer at http://explorer.msn.com/intl.asp/""",
+        '''"""Get your FREE download of MSN Explorer at\nhttp://explorer.msn.com/intl.asp/""",'''
         """--------------------------
 Sent from my BlackBerry Wireless Handheld (www.BlackBerry.net)""",
         """______________________________________________________
@@ -176,6 +186,19 @@ http://auctions.yahoo.com""",
 Do You Yahoo!?
 Yahoo! GeoCities - quick and easy web site hosting, just $8.95/month.
 http://geocities.yahoo.com/ps/info1""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+Get your FREE credit report with a FREE CreditCheck
+Monitoring Service trial
+http://us.click.yahoo.com/ACHqaB/bQ8CAA/ySSFAA/NoOolB/TM
+---------------------------------------------------------------------~->""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+Get your FREE credit report with a FREE CreditCheck
+Monitoring Service trial
+http://us.click.yahoo.com/ACHqaB/bQ8CAA/ySSFAA/9rHolB/TM
+---------------------------------------------------------------------~->""",
+        """__________________________________________________
+Do You Yahoo!?
+Get email alerts & NEW webcam video instant messaging with Yahoo! Messenger. [URL]""",
         """__________________________________________________
 Do You Yahoo!?
 Send your FREE holiday greetings online!
@@ -186,12 +209,76 @@ Get personalized email addresses from Yahoo! Mail
 http://personal.mail.yahoo.com/""",
         """__________________________________________________
 Do You Yahoo!?
+Get personalized email addresses from Yahoo! Mail - only $35
+a year!  http://personal.mail.yahoo.com/""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+Get your FREE credit report with a FREE CreditCheck
+Monitoring Service trial
+http://us.click.yahoo.com/Gi0tnD/bQ8CAA/ySSFAA/NoOolB/TM
+---------------------------------------------------------------------~->""",
+        """__________________________________________________
+Do You Yahoo!?
 Make a great connection at Yahoo! Personals.
 http://personals.yahoo.com""",
         """__________________________________________________
 Do You Yahoo!?
 Make a great connection at Yahoo! Personals.
 http://personals.yahoo.com""",
+        """__________________________________________________
+Do You Yahoo!?
+Find the one for you at Yahoo! Personals
+http://personals.yahoo.com""",
+        """__________________________________________________
+Do You Yahoo!?
+Yahoo! Auctions - buy the things you want at great prices
+http://auctions.yahoo.com/""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+Send FREE Holiday eCards from Yahoo! Greetings.
+http://us.click.yahoo.com/IgTaHA/ZQdDAA/ySSFAA/NoOolB/TM
+---------------------------------------------------------------------~->""",
+        """__________________________________________________
+Do You Yahoo!?
+Listen to your Yahoo! Mail messages from any phone.
+http://phone.yahoo.com""",
+        """Your use of Yahoo! Groups is subject to http://docs.yahoo.com/info/terms/""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+FREE COLLEGE MONEY
+CLICK HERE to search
+600,000 scholarships!
+http://us.click.yahoo.com/47cccB/4m7CAA/ySSFAA/xRZolB/TM
+---------------------------------------------------------------------~->
+""",
+        """__________________________________________________
+Do You Yahoo!?
+Check out Yahoo! Shopping and Yahoo! Auctions for all of
+your unique holiday gifts! Buy at http://shopping.yahoo.com
+or bid at http://auctions.yahoo.com""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+FREE COLLEGE MONEY
+CLICK HERE to search
+600,000 scholarships!
+http://us.click.yahoo.com/47cccB/4m7CAA/ySSFAA/Vk9qlB/TM
+---------------------------------------------------------------------~->""",
+        """At Homecoming 2000, the BETA TENT had the biggest crowd by far.  Stay connected and consider a future homecoming BETA reunion.  It's incredible...forget the 20 years in between...everyone just seems to pick it up right where they left off years ago."""
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+FREE COLLEGE MONEY
+CLICK HERE to search
+600,000 scholarships!
+http://us.click.yahoo.com/zoU8wD/4m7CAA/ySSFAA/Vk9qlB/TM
+---------------------------------------------------------------------~->""",
+        """__________________________________________________
+Do You Yahoo!?
+Send FREE Valentine eCards with Yahoo! Greetings!
+http://greetings.yahoo.com""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+Universal Inkjet Refill Kit $29.95
+Refill any ink cartridge for less!
+Includes black and color ink.
+http://us.click.yahoo.com/E11sED/MkNDAA/ySSFAA/Vk9qlB/TM
+---------------------------------------------------------------------~->
+""",
+        """Do You Yahoo!?
+Make international calls for as low as $.04/minute with Yahoo! Messengerhttp://phonecard.yahoo.com/"""
         """  _____  
 
 Do You Yahoo!?
@@ -213,14 +300,39 @@ http://shopping.yahoo.com""",
 Do You Yahoo!?
 Get email at your own domain with Yahoo! Mail. 
 http://personal.mail.yahoo.com/""",
-        """---------------------------------
+        """__________________________________________________
 Do You Yahoo!?
-Get email alerts & NEW webcam video instant messaging with Yahoo! Messenger.""",
+Get email alerts & NEW webcam video instant messaging with Yahoo! Messenger. http://im.yahoo.com""",
         """_________________________________________________________
 Do You Yahoo!?
 Get your free @yahoo.com address at http://mail.yahoo.com""",
+        """Do You Yahoo!?
+Make international calls for as low as $.04/minute with Yahoo! Messenger
+http://phonecard.yahoo.com/""",
+        """-------------------------
+Yahoo! Greetings is a free service. If you'd like to send someone a
+Yahoo! Greeting, you can do so at http://greetings.yahoo.com/""",
+        """Find the one for you at Yahoo! Personals
+http://rd.yahoo.com/mktg/greetings/txt/confirmation/tagline/?http://personals.yahoo.com""",
+        """__________________________________________________
+Do You Yahoo!?
+Send FREE video emails in Yahoo! Mail!
+http://promo.yahoo.com/videomail/""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~-->
+FREE COLLEGE MONEY
+CLICK HERE to search
+600,000 scholarships!
+http://us.click.yahoo.com/Pv4pGD/4m7CAA/ySSFAA/NoOolB/TM
+---------------------------------------------------------------------~->""",
+        """------------------------ Yahoo! Groups Sponsor ---------------------~--> 
+FREE COLLEGE MONEY 
+CLICK HERE to search 
+600,000 scholarships! 
+<http://us.click.yahoo.com/Pv4pGD/4m7CAA/ySSFAA/NoOolB/TM> 
+---------------------------------------------------------------------~->""",
     ),
 }
 
 
 # TO DO: attempt to generalise regexes
+# Turn at least some of the autofooters into regexes
