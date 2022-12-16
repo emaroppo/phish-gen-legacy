@@ -1,13 +1,11 @@
 import json
-from clean_utils.parsing import separate_thread
+
 from clean_utils.clean import strip_body
+from clean_utils.parsing import separate_thread
 
 
-def txt_to_json(thread_id, thread, thread_header, to_file=True, json_path=None):
-    json_thread = dict()
-    json_thread["thread_id"] = thread_id
-    json_thread["messages"] = list()
-    json_thread = separate_thread(json_thread, thread, thread_header)
+def txt_to_json(thread, thread_header, to_file=True, json_path=None):
+    json_thread = separate_thread(thread, thread_header)
 
     if to_file:
         with open(json_path, "w") as file:
