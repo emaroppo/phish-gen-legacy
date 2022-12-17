@@ -35,10 +35,11 @@ def create_dataset(
     db,
     target_dir,
     scope="head_message",
-    min_len=3,
+    min_len=10,
     max_len=400,
     exclude_html=True,
     balance_dataset=False,
+    include_thread=False,
 ):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
@@ -78,6 +79,36 @@ def create_dataset(
                 to_file=True,
                 txt_path=f"{target_dir}/{i}_tagged.txt",
             )
+
+        if include_thread == "safe":
+            # retrieve all documents where the messages array has length 1 and the message is tagged
+            thread_filter = {
+                "$and": [
+                    {"messages.1": {"$exists": False}},
+                    {"messages.tags": {"$exists": True}},
+                ]
+            }
+
+            # add word count and html filters
+            if min_len:
+                thread_filter["$and"].append({"messages.word_count": {"$gte": min_len}})
+            if max_len:
+                thread_filter["$and"].append({"messages.word_count": {"$lte": max_len}})
+            if exclude_html:
+                thread_filter["$and"].append({"messages.is_html": {"$exists": False}})
+
+            cursor = db.enron_dataset.find(thread_filter)
+            for i, j in tqdm(enumerate(cursor)):
+                create_txt(
+                    j["messages"][0],
+                    to_file=True,
+                    txt_path=f"{target_dir}/{i}_tagged_thread.txt",
+                )
+
+            tagged_threads_count = db.enron_dataset.count_documents(thread_filter)
+            print(tagged_threads_count)
+            tagged_documents_count += tagged_threads_count
+
         untagged_documents_filter = deepcopy(filter)
         untagged_documents_filter["$and"] += [{"head_message.tags": {"$exists": False}}]
         untagged_documents_cursor = db.enron_dataset.find(
