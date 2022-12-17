@@ -107,7 +107,7 @@ def post_attachments(db, doc_, attachment, scope="all", array_index=None):
 
 def extract_attachments_obj(
     db,
-    format_list=get_attachment_regex_dict("file_formats.json"),
+    format_list=get_attachment_regex_dict(),
     scope="all",
     replacement_token=False,
 ):
