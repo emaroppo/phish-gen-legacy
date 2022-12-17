@@ -177,11 +177,12 @@ def add_word_count(db, scope="all"):
 def tag_html_documents(db, scope="all"):
 
     if scope == "head_message" or scope == "all":
-        print(
-            f'Found {db.enron_dataset.count_documents({"head_message.body": {"$regex": "<html>"}})} html documents in head_message'
+        doc_count = db.enron_dataset.count_documents(
+            {"head_message.body": {"$regex": r"<.*[^.]html.*\n?.*>", "$options": "i"}}
         )
+        print(f"Found {doc_count} html documents in head_message")
         cursor = db.enron_dataset.find(
-            {"head_message.body": {"$regex": "<html>", "$options": "i"}}
+            {"head_message.body": {"$regex": r"<.*[^.]html.*\n?.*>", "$options": "i"}}
         )
         for i in tqdm(cursor):
             db.enron_dataset.update_one(
@@ -191,8 +192,24 @@ def tag_html_documents(db, scope="all"):
                 },
             )
     if scope == "messages" or scope == "all":
+        doc_count = db.enron_dataset.count_documents(
+            {
+                "messages": {
+                    "$elemMatch": {
+                        "body": {"$regex": r"<.*[^.]html.*\n?.*>", "$options": "i"}
+                    }
+                }
+            }
+        )
+        print(f"Found {doc_count} html documents in head_message")
         cursor = db.enron_dataset.find(
-            {"messages": {"$elemMatch": {"body": {"$regex": "<html>"}}}}
+            {
+                "messages": {
+                    "$elemMatch": {
+                        "body": {"$regex": r"<.*[^.]html.*\n?.*>", "$options": "i"}
+                    }
+                }
+            }
         )
         for i in tqdm(cursor):
             for j, k in enumerate(i["messages"]):
