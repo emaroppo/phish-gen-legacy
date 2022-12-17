@@ -200,6 +200,8 @@ IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.email
-db_cleaning_pipeline(db)
-create_dataset(db, "email_bodies_balanced2", balance_dataset=True)
+# db_cleaning_pipeline(db)
+create_dataset(
+    db, "email_bodies_balanced3", balance_dataset=True, include_thread="safe"
+)
 client.close()
