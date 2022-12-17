@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import re
 
 from pymongo import MongoClient
 from tqdm import tqdm
@@ -156,11 +157,11 @@ def db_cleaning_pipeline(db):
     print("Extracting attachments done.")
 
     print("Removing automatic footers...")
-    for i in garbage_dict.keys():
+    for i in garbage_dict["replacement_strings"].keys():
         print(f"Removing {i} from bodies...")
         count = 0
         for j in tqdm(db.enron_dataset.find()):
-            for k in garbage_dict[i]:
+            for k in garbage_dict["replacement_strings"][i]:
                 if k in j["head_message"]["body"]:
                     new_body = j["head_message"]["body"].replace(k, "").strip()
                     db.enron_dataset.update_one(
@@ -169,6 +170,26 @@ def db_cleaning_pipeline(db):
                 for l, m in enumerate(j["messages"]):
                     if k in m["body"]:
                         new_body = m["body"].replace(k, "").strip()
+                        db.enron_dataset.update_one(
+                            {"_id": j["_id"]},
+                            {"$set": {"messages." + str(l) + ".body": new_body}},
+                        )
+                        count += 1
+        print(f"Removed {count} instances of {i} from bodies")
+
+    for i in garbage_dict["regex"].keys():
+        print(f"Removing {i} from bodies...")
+        for j in tqdm(db.enron_dataset.find()):
+            for k in garbage_dict["regex"][i]:
+                if re.search(k, j["head_message"]["body"]):
+                    new_body = re.sub(k, "", j["head_message"]["body"]).strip()
+                    db.enron_dataset.update_one(
+                        {"_id": j["_id"]}, {"$set": {"head_message.body": new_body}}
+                    )
+                    count += 1
+                for l, m in enumerate(j["messages"]):
+                    if re.search(k, m["body"]):
+                        new_body = re.sub(k, "", m["body"]).strip()
                         db.enron_dataset.update_one(
                             {"_id": j["_id"]},
                             {"$set": {"messages." + str(l) + ".body": new_body}},
@@ -200,8 +221,6 @@ IN_PATHS = generate_path(SRC_FOLDER_PATH, "all")
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.email
-# db_cleaning_pipeline(db)
-create_dataset(
-    db, "email_bodies_balanced3", balance_dataset=True, include_thread="safe"
-)
+create_dataset(db, 'email_bodies_3',balance_dataset=True, include_thread='safe')
+
 client.close()
