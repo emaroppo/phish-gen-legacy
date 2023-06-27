@@ -18,3 +18,4 @@ email_bodies.zip
 .tmp.*
 __pycache__/
 .vscode/
+.*

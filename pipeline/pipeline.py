@@ -45,11 +45,7 @@ def identify_forwarded_emails(thread):
 
     return thread
 
-db= MongoClient("localhost", 27017).phish_gen_data_raw
-email_paths = generate_paths_from_db(db,1000)
-email_threads = []
-for path in tqdm(email_paths):
-    db.enron_dataset_test.insert_one({'thread':parse_email_thread(path)})
+
 
 #save email threads to db in a new collection
 

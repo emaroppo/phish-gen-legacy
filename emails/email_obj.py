@@ -11,6 +11,7 @@ class EMail:
     def from_txt(txt_file):
 
         headers, body = parse_email_thread(txt_file)
+        
         # drop empty headers
         headers = {k: v for k, v in headers.items() if v}
         headers = EMailHeader(**headers)
